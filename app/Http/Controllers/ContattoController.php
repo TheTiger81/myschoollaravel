@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Contatto;
 use Illuminate\Http\Request;
+use App\Mail\ResponseMail;
+use Illuminate\Support\Facades\Mail;
 
 class ContattoController extends Controller
 {
@@ -61,6 +63,33 @@ class ContattoController extends Controller
         $contatto->save();
 
         return response()->json(['message' => 'Contatto marcato come letto con successo']);
+}
+
+    public function destroy($id)
+    {
+        $contatto = Contatto::find($id);
+        if (!$contatto) {
+            return response()->json(['message' => 'Contatto non trovato.'], 404);
+        }
+
+        $contatto->delete();
+
+        return response()->json(['message' => 'Contatto cancellato con successo.']);
+    }
+
+    public function inviaRisposta(Request $request, $id)
+{
+    // Trova il contatto usando l'ID fornito
+    $contatto = Contatto::findOrFail($id);
+
+    // Estrai il testo della risposta dalla richiesta
+    $risposta = $request->input('risposta');
+
+    // Invia l'email di risposta
+    Mail::to($contatto->email)->send(new ResponseMail($risposta));
+
+    // Restituisci una risposta per confermare l'invio
+    return response()->json(['message' => 'Risposta inviata con successo.']);
 }
 
 }

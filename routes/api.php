@@ -7,7 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContattoController;
 use App\Http\Controllers\VisitController;
-
+use App\Http\Controllers\EmailSettingsController;
 
 // Login
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +37,16 @@ Route::middleware('auth:sanctum')->get('/contatti/dettagli-non-gestiti', [Contat
 // Route per marcare un messaggio come letto
 Route::middleware('auth:sanctum')->put('/contatti/{id}/marcare-come-letto', [ContattoController::class, 'marcareComeLetto']);
 
+// Route per cancellare un messaggio
+Route::middleware('auth:sanctum')->group(function () {
+    Route::delete('/contatti/{id}', [ContattoController::class,'destroy']);
+});
+
+// Route per inviare una risposta a un messaggio
+Route::middleware('auth:sanctum')->post('/contatti/{id}/risposta', [ContattoController::class, 'inviaRisposta']);
+
+// Impostazione casella email
+Route::post('/email-settings', [EmailSettingsController::class, 'update']);
 
 // Modifica i dati ricevuti nel modulo (permesso 'edit')
 Route::middleware(['auth:sanctum', 'permission:edit'])->put('/module-data/{id}', [ModuleDataController::class, 'update']);

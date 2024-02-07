@@ -69,6 +69,8 @@ return [
         Spatie\Permission\PermissionServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        
+
     ])->toArray(),
 
 
