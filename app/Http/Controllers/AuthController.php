@@ -29,15 +29,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Prendiamo l'utente autenticato
         $user = Auth::user();
-
-        // Revoca tutti i token dell'utente per disconnettersi
-        $user->tokens()->each(function($token, $key) {
-            $token->delete();
-        });
-
-        return response()->json(['message' => 'Logout effettuato con successo.']);
+    
+        if ($user->tokens) {
+            $user->tokens->each(function ($token, $key) {
+                $token->delete();
+            });
+    
+            return response()->json(['message' => 'Logout effettuato con successo.']);
+        }
+    
+        return response()->json(['message' => 'Nessun token da revocare.']);
     }
+    
 }
 

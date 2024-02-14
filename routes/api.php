@@ -1,68 +1,79 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContattoController;
-use App\Http\Controllers\VisitController;
 use App\Http\Controllers\EmailSettingsController;
+use App\Http\Controllers\AnnunciController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\AvvisoController;
+use App\Http\Controllers\ImmagineController;
+use App\Http\Controllers\EventoController;
+use App\Http\Controllers\TextController;
 
-// Login
 Route::post('/login', [AuthController::class, 'login']);
-
-// Modulo Contatto
 Route::post('/contatti', [ContattoController::class, 'store']);
-
-// Ottiene i dati dell'utente autenticato
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-// Dati della dashboard
-Route::middleware('auth:sanctum')->get('/dashboard', [DashboardController::class, 'index']);
-
-// Elimina un utente (permesso 'delete')
-Route::middleware(['auth:sanctum', 'permission:delete'])->delete('/user/{id}', [UserController::class, 'destroy']);
-
-// Route per ottenere tutti i contatti/messaggi
-Route::middleware('auth:sanctum')->get('/contatti', [ContattoController::class, 'index']);
-
-// Route per ottenere il conteggio dei messaggi non gestiti
-Route::middleware('auth:sanctum')->get('/contatti/count-non-gestiti', [ContattoController::class, 'countNonGestiti']);
-
-// Route per ottenere i dettagli dei contatti/messaggi non gestiti
-Route::middleware('auth:sanctum')->get('/contatti/dettagli-non-gestiti', [ContattoController::class, 'dettagliNonGestiti']);
-
-// Route per marcare un messaggio come letto
-Route::middleware('auth:sanctum')->put('/contatti/{id}/marcare-come-letto', [ContattoController::class, 'marcareComeLetto']);
-
-// Route per cancellare un messaggio
-Route::middleware('auth:sanctum')->group(function () {
-    Route::delete('/contatti/{id}', [ContattoController::class,'destroy']);
-});
-
-// Route per inviare una risposta a un messaggio
-Route::middleware('auth:sanctum')->post('/contatti/{id}/risposta', [ContattoController::class, 'inviaRisposta']);
-
-// Impostazione casella email
 Route::post('/email-settings', [EmailSettingsController::class, 'update']);
+Route::get('/annunci', [AnnunciController::class, 'index']);
+Route::get('/annunci/{annuncio}', [AnnunciController::class, 'show']);
+Route::get('/avvisi', [AvvisoController::class, 'index']);
+Route::get('/immagini', [ImmagineController::class, 'index']);
+Route::get('/immagini/{id}', [ImmagineController::class, 'show']);
+Route::get('/eventi', [EventoController::class, 'index']);
+Route::get('/eventi/{id}', [EventoController::class, 'show']);
+Route::get('/texts', [TextController::class, 'index']);
+Route::get('/texts/{id}', [TextController::class, 'show']);
+Route::get('/texts/{slug}', [TextController::class, 'show']);
 
-// Modifica i dati ricevuti nel modulo (permesso 'edit')
-Route::middleware(['auth:sanctum', 'permission:edit'])->put('/module-data/{id}', [ModuleDataController::class, 'update']);
 
-// Crea o modifica altri utenti (permesso 'owner')
-Route::middleware(['auth:sanctum', 'permission:owner'])->post('/user', [UserController::class, 'store']);
-Route::middleware(['auth:sanctum', 'permission:owner'])->put('/user/{id}', [UserController::class, 'update']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();});
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/contatti', [ContattoController::class, 'index']);
+    Route::get('/contatti/count-non-gestiti', [ContattoController::class, 'countNonGestiti']);
+    Route::get('/contatti/dettagli-non-gestiti', [ContattoController::class, 'dettagliNonGestiti']);
+    Route::put('/contatti/{id}/marcare-come-letto', [ContattoController::class, 'marcareComeLetto']);
+    Route::post('/contatti/{id}/risposta', [ContattoController::class, 'inviaRisposta']);
+    Route::delete('/contatti/{id}', [ContattoController::class,'destroy']);
+    Route::get('/notifiche', [NotificheController::class, 'index']);
+    Route::post('/manager/create', [ManagerController::class, 'create']);
+    Route::get('/dashboard/gestione-sezioni', [GestioneSezioniController::class, 'index']);
+    Route::apiResource('/avvisi', AvvisoController::class)->except(['index']);
+    Route::get('/avvisi/{avviso}', [AvvisoController::class, 'show']);
+    Route::put('/avvisi/{avviso}', [AvvisoController::class, 'update']);
+    Route::delete('/avvisi/{avviso}', [AvvisoController::class, 'destroy']);
+    Route::post('/immagini', [ImmagineController::class, 'store']);
+    Route::put('/immagini/{id}', [ImmagineController::class, 'update']);
+    Route::delete('/immagini/{id}', [ImmagineController::class, 'destroy']);
+    Route::apiResource('eventi', EventoController::class)->except(['index']);
+    Route::get('/eventi/{evento}', [EventoController::class, 'show']);
+    Route::put('/eventi/{evento}', [EventoController::class, 'update']);
+    Route::delete('/eventi/{evento}', [EventoController::class, 'destroy']);
+    Route::apiResource('/texts', TextController::class); 
+    Route::post('/texts', [TextController::class, 'store']); 
+    Route::put('/texts/{id}', [TextController::class, 'update']);
+    Route::delete('/texts/{id}', [TextController::class, 'destroy']);
 
-// Ottiene i permessi e i ruoli dell'utente autenticato
-Route::middleware('auth:sanctum')->get('/user-permissions', function (Request $request) {
-    $user = $request->user();
-    $permissions = $user->permissions()->get(); // Assicurati che questo metodo restituisca i permessi corretti
-    $roles = $user->getRoleNames(); // Ottiene i nomi dei ruoli
-
-    return response()->json(['permissions' => $permissions, 'roles' => $roles]);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user-permissions', function (Request $request) {
+        $user = $request->user();
+        $permissions = $user->permissions()->get();
+        $roles = $user->getRoleNames();
+        return response()->json(['permissions' => $permissions, 'roles' => $roles]);
+    });
+});
+Route::middleware(['auth:sanctum', 'permission:delete'])->group(function () {
+    Route::delete('/user/{id}', [UserController::class, 'destroy']);
+});
+Route::middleware(['auth:sanctum', 'permission:edit'])->group(function () {
+    Route::put('/module-data/{id}', [ModuleDataController::class, 'update']);
+});
+Route::middleware(['auth:sanctum', 'permission:owner'])->group(function () {
+    Route::post('/user', [UserController::class, 'store']);
+    Route::put('/user/{id}', [UserController::class, 'update']);
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
